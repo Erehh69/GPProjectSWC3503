@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Mar 05, 2024 at 11:28 AM
+-- Generation Time: Mar 05, 2024 at 01:26 PM
 -- Server version: 8.0.31
 -- PHP Version: 7.4.33
 
@@ -50,16 +50,17 @@ CREATE TABLE `ledger_entries` (
   `category_id` int DEFAULT NULL,
   `description` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `amount` decimal(10,2) NOT NULL,
-  `date` date NOT NULL
+  `date` date NOT NULL,
+  `type` enum('debit','credit') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'debit'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `ledger_entries`
 --
 
-INSERT INTO `ledger_entries` (`id`, `category_id`, `description`, `amount`, `date`) VALUES
-(1, 1, 'ayam percik', 7.00, '2024-03-05'),
-(2, 1, 'kaki ayam', 23.00, '2024-03-13');
+INSERT INTO `ledger_entries` (`id`, `category_id`, `description`, `amount`, `date`, `type`) VALUES
+(3, 1, 'ayam goreng', 100.00, '2024-03-05', 'debit'),
+(4, 1, 'payment for company A', 16000.00, '2024-03-05', 'credit');
 
 -- --------------------------------------------------------
 
@@ -123,7 +124,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `ledger_entries`
 --
 ALTER TABLE `ledger_entries`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`
