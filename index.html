@@ -6,23 +6,22 @@
     <title>Ledger Website</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-            padding: 50px;
+          text-align: center;
+          color: #fff;
+          padding-top: 100px;
         }
 
         h1 {
-            color: #333;
+            font-size: 50px;
+            font-family: 'Kaushan Script' , cursive;
+            color: rgb(3, 242, 255);
         }
 
         a {
             display: inline-block;
-            margin-top: 20px;
+            margin-top: 40px;
             padding: 10px 20px;
-            background-color: #4caf50;
+            background-color: #8b02f4;
             color: #fff;
             text-decoration: none;
             border-radius: 5px;
@@ -30,12 +29,24 @@
         }
 
         a:hover {
-            background-color: #45a049;
+            background-color: #00d0ff;
         }
+        .logo{
+            width: 120px;
+            position: absolute;
+            top: 4%;
+            left: 5%;
+        }
+
     </style>
 </head>
-<body>
-    <h1>Welcome to the Ledger Website</h1>
+<section id="banner">
+    <img src="img/logo1.png" class="logo">
+</section>
+<body background="img/bg1.jpeg" style="background-size: 100%; background-repeat: no-repeat;" > 
+    <h1 style="text-align: center">Welcome to the Ledger Website</h1>
+    <div style="text-align:center">
     <a href="login.php">Login</a> | <a href="register.php">Register</a>
+</div>
 </body>
 </html>

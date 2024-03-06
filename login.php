@@ -60,22 +60,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Ledger Website</title>
+    <link rel="stylesheet" href="style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
-    <h1>Login</h1>
 
     <?php if (isset($error)) { ?>
         <p style="color: red;"><?php echo $error; ?></p>
     <?php } ?>
 
+    <div class="wrapper">
     <form action="login.php" method="post">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required>
-        <br>
-        <label for="password">Password:</label>
-        <input type="password" name="password" required>
-        <br>
-        <button type="submit">Login</button>
+        <h1>Login</h1>
+        <div class="input-box">
+        <input type="text" placeholder="username" name="username" required>
+        <i class='bx bxs-user'></i>
+        </div>
+        <div class="input-box">
+        <input type="password" placeholder="password" name="password" required>
+        <i class='bx bxs-lock-alt'></i>
+    </div>
+
+        <div class="remember-forgot">
+            <label><input type="checkbox"> Remember me</label>
+            <a href="#">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn">Login</button>
+        <div class="register-link">
+            <p>Don't have an account? <a href="register.php">Register</a></p>
     </form>
+    </div>
 </body>
 </html>
