@@ -22,6 +22,46 @@ if ($user_result) {
     die("Error executing user query: " . $conn->error);
 }
 
+// Calculate total debit amount
+$total_debit = 0;
+// Debit query to retrieve debit entries
+$debit_query = "SELECT le.id, le.description, le.amount, c.name AS category_name, le.date
+                FROM ledger_entries le
+                JOIN categories c ON le.category_id = c.id
+                WHERE le.type = 'debit'";
+$debit_result = $conn->query($debit_query);
+
+if ($debit_result) {
+    $debit_entries = $debit_result->fetch_all(MYSQLI_ASSOC);
+
+    foreach ($debit_entries as $entry) {
+        $total_debit += $entry['amount'];
+    }
+} else {
+    // Handle query error
+    echo "Error executing debit query: " . $conn->error;
+}
+
+// Calculate total credit amount
+$total_credit = 0;
+// Credit query to retrieve credit entries
+$credit_query = "SELECT le.id, le.description, le.amount, c.name AS category_name, le.date
+                FROM ledger_entries le
+                JOIN categories c ON le.category_id = c.id
+                WHERE le.type = 'credit'";
+$credit_result = $conn->query($credit_query);
+
+if ($credit_result) {
+    $credit_entries = $credit_result->fetch_all(MYSQLI_ASSOC);
+
+    foreach ($credit_entries as $entry) {
+        $total_credit += $entry['amount'];
+    }
+} else {
+    // Handle query error
+    echo "Error executing credit query: " . $conn->error;
+}
+
 // Handle logout
 if (isset($_GET['logout'])) {
     session_destroy();
@@ -38,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
     $date = $_POST['date']; // Use the provided date input field
 
     // Insert new ledger entry
-    $insert_query = "INSERT INTO ledger_entries (description, amount, type, category_id, date) 
+    $insert_query = "INSERT INTO ledger_entries (description, amount, type, category_id, date)
                      VALUES ('$description', '$amount', '$type', '$category_id', '$date')";
     $insert_result = $conn->query($insert_query);
 
@@ -176,15 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
                     <th>Date</th>
                 </tr>
                 <?php
-                $debit_query = "SELECT le.id, le.description, le.amount, c.name AS category_name, le.date
-                                FROM ledger_entries le
-                                JOIN categories c ON le.category_id = c.id
-                                WHERE le.type = 'debit'";
-                $debit_result = $conn->query($debit_query);
-
                 if ($debit_result) {
-                    $debit_entries = $debit_result->fetch_all(MYSQLI_ASSOC);
-
                     foreach ($debit_entries as $entry) {
                         ?>
                         <tr>
@@ -210,80 +242,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
                 <tr>
                     <th>ID</th>
                     <th>Description</th>
-                    <th>Amount</th>
-                    <th>Category</th>
-                    <th>Date</th>
-                </tr>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Date</th>
+            </tr>
+            <?php
+            if ($credit_result) {
+                foreach ($credit_entries as $entry) {
+                    ?>
+                    <tr>
+                        <td><?php echo $entry['id']; ?></td>
+                        <td><?php echo $entry['description']; ?></td>
+                        <td>MYR <?php echo $entry['amount']; ?></td>
+                        <td><?php echo $entry['category_name']; ?></td>
+                        <td><?php echo $entry['date']; ?></td>
+                    </tr>
+                    <?php
+                }
+            } else {
+                // Handle query error
+                echo "Error executing credit query: " . $conn->error;
+            }
+            ?>
+        </table>
+    </div>
+
+    <div class="totals-section">
+        <h2>Total Debit and Credit</h2>
+        <p>Total Debit: MYR <?php echo $total_debit; ?></p>
+        <p>Total Credit: MYR <?php echo $total_credit; ?></p>
+    </div>
+
+    <?php if ($user_role === 'admin' || $user_role === 'user') { ?>
+        <!-- All users can add new ledger entries -->
+        <h2>Add Ledger Entry</h2>
+        <form action="dashboard.php" method="post">
+            <label for="description">Description:</label>
+            <input type="text" name="description" required>
+            <br>
+            <label for="amount">Amount:</label>
+            <input type="number" name="amount" step="0.01" required>
+            <br>
+            <label for="type">Type:</label>
+            <select name="type" required>
+                <option value="debit">Debit</option>
+                <option value="credit">Credit</option>
+            </select>
+            <br>
+            <label for="category">Category:</label>
+            <select name="category" required>
                 <?php
-                $credit_query = "SELECT le.id, le.description, le.amount, c.name AS category_name, le.date
-                                FROM ledger_entries le
-                                JOIN categories c ON le.category_id = c.id
-                                WHERE le.type = 'credit'";
-                $credit_result = $conn->query($credit_query);
+                $category_query = "SELECT * FROM categories";
+                $category_result = $conn->query($category_query);
 
-                if ($credit_result) {
-                    $credit_entries = $credit_result->fetch_all(MYSQLI_ASSOC);
+                if ($category_result) {
+                    $categories = $category_result->fetch_all(MYSQLI_ASSOC);
 
-                    foreach ($credit_entries as $entry) {
-                        ?>
-                        <tr>
-                            <td><?php echo $entry['id']; ?></td>
-                            <td><?php echo $entry['description']; ?></td>
-                            <td>MYR <?php echo $entry['amount']; ?></td>
-                            <td><?php echo $entry['category_name']; ?></td>
-                            <td><?php echo $entry['date']; ?></td>
-                        </tr>
-                        <?php
+                    foreach ($categories as $category) {
+                        echo "<option value='" . $category['id'] . "'>" . $category['name'] . "</option>";
                     }
                 } else {
                     // Handle query error
-                    echo "Error executing credit query: " . $conn->error;
+                    echo "Error executing category query: " . $conn->error;
                 }
                 ?>
-            </table>
-        </div>
-
-        <?php if ($user_role === 'admin' || $user_role === 'user') { ?>
-            <!-- All users can add new ledger entries -->
-            <h2>Add Ledger Entry</h2>
-            <form action="dashboard.php" method="post">
-                <label for="description">Description:</label>
-                <input type="text" name="description" required>
-                <br>
-                <label for="amount">Amount:</label>
-                <input type="number" name="amount" step="0.01" required>
-                <br>
-                <label for="type">Type:</label>
-                <select name="type" required>
-                    <option value="debit">Debit</option>
-                    <option value="credit">Credit</option>
-                </select>
-                <br>
-                <label for="category">Category:</label>
-                <select name="category" required>
-                    <?php
-                    $category_query = "SELECT * FROM categories";
-                    $category_result = $conn->query($category_query);
-
-                    if ($category_result) {
-                        $categories = $category_result->fetch_all(MYSQLI_ASSOC);
-
-                        foreach ($categories as $category) {
-                            echo "<option value='" . $category['id'] . "'>" . $category['name'] . "</option>";
-                        }
-                    } else {
-                        // Handle query error
-                        echo "Error executing category query: " . $conn->error;
-                    }
-                    ?>
-                </select>
-                <br>
-                <label for="date">Date:</label>
-                <input type="datetime-local" name="date" required>
-                <br>
-                <button type="submit" name="add_entry">Add Entry</button>
-            </form>
-        <?php } ?>
-    </section>
+            </select>
+            <br>
+            <label for="date">Date:</label>
+            <input type="datetime-local" name="date" required>
+            <br>
+            <button type="submit" name="add_entry">Add Entry</button>
+        </form>
+    <?php } ?>
+</section>
 </body>
 </html>
+
