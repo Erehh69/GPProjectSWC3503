@@ -58,23 +58,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Ledger Website</title>
+    <link rel="stylesheet" href="style2.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
-    <h1>Register</h1>
+    <div class="container">
+        <div class="form-box">
 
     <?php if (isset($error)) { ?>
         <p style="color: red;"><?php echo $error; ?></p>
     <?php } ?>
 
-    <form action="register.php" method="post">
-        <label for="username">Username (alphanumeric characters only):</label>
-        <input type="text" name="username" pattern="[a-zA-Z0-9]+" required>
+    <form action="register.php" name="Formfill" method="post">
+    <h1>Register</h1>
+        <div class="input-box">
+        <i class='bx bxs-user'></i>
+        <br>
+        <label for="username">(Alphanumeric characters only):</label>
+        <input type="text" name="username" placeholder="Username" pattern="[a-zA-Z0-9]+" required>
+        </div>
+        <div class="input-box">
+        <i class='bx bxs-lock-alt' ></i>
         <br>
         <label for="password">Password (at least 8 characters):</label>
-        <input type="password" name="password" minlength="8" required>
-        <br>
-        <button type="submit">Register</button>
+        <input type="password" name="password" placeholder="Password" minlength="8" required>
+        </div>
+        <div class="input-box">
+        <i class='bx bxs-envelope'></i>
+        <input type="email" name="Email" placeholder="Email">
+        </div>
+        <div class="button">
+            <input type="submit" class="btn" value="Register">
+        </div>
+        <div class="group">
+            <span><a href="#">Forget password</a></span>
+            <span><a href="login.php">Login</a></span>
+        </div>
     </form>
-    <p>Already have an account? <a href="login.php">Login here</a></p>
 </body>
 </html>

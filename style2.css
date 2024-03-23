@@ -1,0 +1,111 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "poppins",sans-serif;
+}
+body{
+    background: url(img/w1\ login.jpeg) no-repeat;
+    background-position: center;
+    background-size: cover;
+    min-height: 100vh;
+    width: 100%;
+}
+.container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+.form-box{
+    position: relative;
+    width: 400px;
+    height: 550px;
+    border: 2px solid rgba(255, 255, 2550.5);
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: #BF40BF 0px 1px 25px;
+}
+.form-box h1{
+    color: #fff;
+    text-align: center;
+    font-size: 32px;
+}
+.form-box .input-box{
+    position: relative;
+    margin: 30px 0;
+    width: 310px;
+    border-bottom: 2px solid #fff;
+}
+.form-box .input-box input{
+    width: 100%;
+    height: 45px;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0 20px 0 5px;
+    color: #fff;
+    font-size: 16px;
+}
+i{
+    position: absolute;
+    color: #fff;
+    top: 13px;
+    right: 0;
+}
+input::placeholder{
+    color: #fff;
+}
+/*.btn{
+    color: #fff;
+    background: blue;
+    width: 100%;
+    height: 50px;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+    font-size: 17px;
+    cursor: pointer;
+    box-shadow: 3px 0 10px rgba(0, 0, 0,.5);
+}*/
+.group{
+    display: flex;
+    justify-content: space-between;
+}
+.group span a{
+    color: #fff;
+    position: relative;
+    top: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    
+}
+.group a:focus{
+    text-decoration: underline;
+}
+
+
+
+/*NI TAMBAHAN SAJA SAJA JE ZAD*/
+.btn{
+    color: black;
+    background: #BF40BF;
+    width: 100%;
+    height: 50px;
+    border-radius: 5px;
+    outline: none;
+    border: none;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: #CF9FFF 3px 0px 23px;
+}
+
+.btn:hover{
+    background-color: #AB39AB;
+    color: white;
+    box-shadow: #CF9FFF 3px 0px 23px;
+}
