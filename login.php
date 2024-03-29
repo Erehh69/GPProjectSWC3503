@@ -1,6 +1,10 @@
 <?php
 session_start();
 require_once 'config.php';
+require_once __DIR__ . '/vendor/autoload.php'; // Corrected path to autoload.php
+
+
+use PHPGangsta\GoogleAuthenticator\GoogleAuthenticator;
 
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
@@ -25,6 +29,7 @@ if (isset($_SESSION['user_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
+    $totp_code = $_POST['totp_code']; // Added TOTP code field
 
     // Validate credentials
     $query = "SELECT * FROM users WHERE username = '$username'";
@@ -34,22 +39,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $result->fetch_assoc();
         $hashed_password = hash('sha256', $password);
 
-        // Compare hashed passwords
-        if ($hashed_password === $user['password']) {
-            $_SESSION['user_id'] = $user['id'];
+        if (hash('sha256', $password) === $user['password']) {
+            // Verify TOTP code
+            $ga = new GoogleAuthenticator();
+            $isValidTotp = $ga->verifyCode($user['secret_key'], $totp_code, 2); // 2 is the tolerance window
 
-            if ($user['role'] === 'admin') {
-                header("Location: admin.php");
-            } else {
-                header("Location: dashboard.php");
-            }
-
-            exit();
+        if ($isValidTotp) {
+                $_SESSION['user_id'] = $user['id'];
+                    if ($user['role'] === 'admin') {
+                        header("Location: admin.php");
+                    } else {
+                        header("Location: dashboard.php");
+                    }
+                    exit();
+                    } else {
+                    $error = "Invalid credentials";
+                }
         } else {
             $error = "Invalid credentials";
         }
-    } else {
-        $error = "Invalid credentials";
     }
 }
 ?>
@@ -79,6 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="input-box">
         <input type="password" placeholder="password" name="password" required>
         <i class='bx bxs-lock-alt'></i>
+        <div class="input-box">
+        <input type="text" placeholder="TOTP Code" name="totp_code" required>
     </div>
 
         <div class="remember-forgot">

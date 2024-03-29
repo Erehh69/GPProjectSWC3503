@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once 'config.php';
+require_once 'vendor/autoload.php'; // Include the GoogleAuthenticator library
+
+use PHPGangsta\GoogleAuthenticator\GoogleAuthenticator;
 
 if (isset($_SESSION['user_id'])) {
     header("Location: dashboard.php");
@@ -48,6 +51,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             }
         }
+    }
+    // Generate secret key for 2FA
+    $ga = new GoogleAuthenticator();
+    $secret = $ga->createSecret();
+
+    // Store the secret key in the database
+    $hashed_password = hash('sha256', $password);
+    $insert_query = "INSERT INTO users (username, password, secret_key) VALUES ('$username', '$hashed_password', '$secret')";
+    $result = $conn->query($insert_query);
+
+    if ($result) {
+        // Display QR code for the user to scan
+        $qrCodeUrl = $ga->getQRCodeGoogleUrl('LedgerWebsite', $secret);
+        echo "Scan the QR code below using an authenticator app:<br>";
+        echo "<img src='$qrCodeUrl' alt='QR Code'><br>";
+
+        echo "Secret Key (for manual entry): $secret<br>";
+
+        echo "<a href='login.php'>Proceed to Login</a>";
+        exit();
+    } else {
+        $error = "Error registering the user. Please try again.";
     }
 }
 ?>
