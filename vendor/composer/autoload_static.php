@@ -6,6 +6,20 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitbe5af301f85ad707d9ff9551e36fcf98
 {
+    public static $prefixLengthsPsr4 = array (
+        'P' => 
+        array (
+            'PHPGangsta\\' => 11,
+        ),
+    );
+
+    public static $prefixDirsPsr4 = array (
+        'PHPGangsta\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpgangsta/googleauthenticator/PHPGangsta',
+        ),
+    );
+
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'PHPGangsta_GoogleAuthenticator' => __DIR__ . '/..' . '/phpgangsta/googleauthenticator/PHPGangsta/GoogleAuthenticator.php',
@@ -14,6 +28,8 @@ class ComposerStaticInitbe5af301f85ad707d9ff9551e36fcf98
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
+            $loader->prefixLengthsPsr4 = ComposerStaticInitbe5af301f85ad707d9ff9551e36fcf98::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitbe5af301f85ad707d9ff9551e36fcf98::$prefixDirsPsr4;
             $loader->classMap = ComposerStaticInitbe5af301f85ad707d9ff9551e36fcf98::$classMap;
 
         }, null, ClassLoader::class);

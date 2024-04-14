@@ -3,8 +3,7 @@ session_start();
 require_once 'config.php';
 require_once __DIR__ . '/vendor/autoload.php'; // Corrected path to autoload.php
 
-
-use PHPGangsta\GoogleAuthenticator\GoogleAuthenticator;
+use PHPGangsta\GoogleAuthenticator;
 
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
@@ -44,17 +43,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ga = new GoogleAuthenticator();
             $isValidTotp = $ga->verifyCode($user['secret_key'], $totp_code, 2); // 2 is the tolerance window
 
-        if ($isValidTotp) {
+            if ($isValidTotp) {
                 $_SESSION['user_id'] = $user['id'];
-                    if ($user['role'] === 'admin') {
-                        header("Location: admin.php");
-                    } else {
-                        header("Location: dashboard.php");
-                    }
-                    exit();
-                    } else {
-                    $error = "Invalid credentials";
+                if ($user['role'] === 'admin') {
+                    header("Location: admin.php");
+                } else {
+                    header("Location: dashboard.php");
                 }
+                exit();
+            } else {
+                $error = "Invalid credentials";
+            }
         } else {
             $error = "Invalid credentials";
         }
@@ -81,16 +80,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form action="login.php" method="post">
         <h1>Login</h1>
         <div class="input-box">
-        <input type="text" placeholder="username" name="username" required>
-        <i class='bx bxs-user'></i>
+            <input type="text" placeholder="username" name="username" required>
+            <i class='bx bxs-user'></i>
         </div>
         <div class="input-box">
-        <input type="password" placeholder="password" name="password" required>
-        <i class='bx bxs-lock-alt'></i>
+            <input type="password" placeholder="password" name="password" required>
+            <i class='bx bxs-lock-alt'></i>
+        </div>
         <div class="input-box">
-        <input type="text" placeholder="TOTP Code" name="totp_code" required>
-    </div>
-
+            <input type="text" placeholder="TOTP Code" name="totp_code" required>
+        </div>
         <div class="remember-forgot">
             <label><input type="checkbox"> Remember me</label>
             <a href="#">Forgot password?</a>
@@ -98,6 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit" class="btn">Login</button>
         <div class="register-link">
             <p>Don't have an account? <a href="register.php">Register</a></p>
+        </div>
     </form>
     </div>
 </body>

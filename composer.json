@@ -1,5 +1,11 @@
 {
     "require": {
         "phpgangsta/googleauthenticator": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "PHPGangsta\\": "vendor/phpgangsta/googleauthenticator/PHPGangsta"
+        }
     }
 }
+
