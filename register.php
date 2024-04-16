@@ -22,6 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Invalid username format (alphanumeric characters only)";
     } elseif (strlen($password) < 8) {
         $error = "Password must be at least 8 characters long";
+    } elseif (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Invalid email format";
     } else {
         // Check if username or email already exists
         $check_query = "SELECT * FROM users WHERE username = ? OR user_email = ?";
@@ -124,7 +126,7 @@ function sendVerificationEmail($email, $verification_code) {
                 </div>
                 <div class="input-box">
                     <i class='bx bxs-envelope'></i>
-                    <input type="email" name="email" id="email" placeholder="Email" autocomplete="email">
+                    <input type="email" name="email" id="email" placeholder="Email" autocomplete="email" required>
                 </div>
                 <div class="button">
                     <input type="submit" class="btn" value="Register">
