@@ -1,62 +1,42 @@
 <?php
 session_start();
-require_once 'config.php';
-require_once __DIR__ . '/vendor/autoload.php'; // Corrected path to autoload.php
-
-use PHPGangsta\GoogleAuthenticator;
-
-if (isset($_SESSION['user_id'])) {
-    $user_id = $_SESSION['user_id'];
-
-    // Fetch user information to get the role
-    $user_query = "SELECT * FROM users WHERE id = '$user_id'";
-    $user_result = $conn->query($user_query);
-
-    if ($user_result->num_rows > 0) {
-        $user = $user_result->fetch_assoc();
-
-        if ($user['role'] === 'admin') {
-            header("Location: admin.php");
-            exit();
-        } else {
-            header("Location: dashboard.php");
-            exit();
-        }
-    }
-}
+require_once 'config.php'; // Include the database configuration file
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
-    $totp_code = $_POST['totp_code']; // Added TOTP code field
+    $verification_code = $_POST['verification_code'];
 
-    // Validate credentials
-    $query = "SELECT * FROM users WHERE username = '$username'";
-    $result = $conn->query($query);
+    // Retrieve user data including the verification code and email verification status
+    $query = "SELECT * FROM users WHERE username = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
+    if ($result->num_rows == 1) {
         $user = $result->fetch_assoc();
-        $hashed_password = hash('sha256', $password);
 
-        if (hash('sha256', $password) === $user['password']) {
-            // Verify TOTP code
-            $ga = new GoogleAuthenticator();
-            $isValidTotp = $ga->verifyCode($user['secret_key'], $totp_code, 2); // 2 is the tolerance window
-
-            if ($isValidTotp) {
+        // Verify password
+        if (password_verify($password, $user['password'])) {
+            // Compare the provided verification code with the one stored in the database
+            if ($verification_code === $user['email_verification_code'] && $user['email_verified'] == 1) {
+                // Verification code matches and email is verified, proceed with login
                 $_SESSION['user_id'] = $user['id'];
-                if ($user['role'] === 'admin') {
-                    header("Location: admin.php");
-                } else {
-                    header("Location: dashboard.php");
-                }
+                // Redirect to dashboard or any other authenticated page
+                header("Location: dashboard.php");
                 exit();
             } else {
-                $error = "Invalid credentials";
+                // Invalid verification code or email not verified
+                $error = "Invalid verification code or email not verified";
             }
         } else {
-            $error = "Invalid credentials";
+            // Invalid username or password
+            $error = "Invalid username or password";
         }
+    } else {
+        // User not found
+        $error = "Invalid username or password";
     }
 }
 ?>
@@ -80,19 +60,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form action="login.php" method="post">
         <h1>Login</h1>
         <div class="input-box">
-            <input type="text" placeholder="username" name="username" required>
+            <input type="text" placeholder="Username" name="username" required>
             <i class='bx bxs-user'></i>
         </div>
         <div class="input-box">
-            <input type="password" placeholder="password" name="password" required>
+            <input type="password" placeholder="Password" name="password" required>
             <i class='bx bxs-lock-alt'></i>
         </div>
         <div class="input-box">
-            <input type="text" placeholder="TOTP Code" name="totp_code" required>
-        </div>
-        <div class="remember-forgot">
-            <label><input type="checkbox"> Remember me</label>
-            <a href="#">Forgot password?</a>
+            <input type="text" placeholder="Verification Code" name="verification_code" required>
         </div>
         <button type="submit" class="btn">Login</button>
         <div class="register-link">

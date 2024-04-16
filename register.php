@@ -1,15 +1,10 @@
 <?php
 session_start();
 require_once 'config.php'; // Include the database configuration file
-require_once 'vendor/autoload.php'; // Include the GoogleAuthenticator library
-
-use PHPGangsta\GoogleAuthenticator;
 
 // Check database connection
 if ($conn->connect_error) {
     die("Database connection failed: " . $conn->connect_error);
-} else {
-    echo "Database connected successfully";
 }
 
 if (isset($_SESSION['user_id'])) {
@@ -28,44 +23,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (strlen($password) < 8) {
         $error = "Password must be at least 8 characters long";
     } else {
-        // Check if username already exists
-        $check_query = "SELECT * FROM users WHERE username = ?";
+        // Check if username or email already exists
+        $check_query = "SELECT * FROM users WHERE username = ? OR user_email = ?";
         $stmt = $conn->prepare($check_query);
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-            $error = "Username already exists";
+        if (!$stmt) {
+            // Failed to prepare the statement
+            $error = "Error preparing the statement: " . $conn->error;
         } else {
-            // Hash the password using SHA-256
-            $hashed_password = hash('sha256', $password);
+            // Continue with the execution of the prepared statement
+            $stmt->bind_param("ss", $username, $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
-            // Set default values for MFA related fields
-            $mfa_enabled = 0;
-            $role = 'user';
-            $totp_secret_key = '';
-            $totp_code = '';
-
-            // Insert user into the database using prepared statements
-            $insert_query = "INSERT INTO users (username, password, email, mfa_enabled, role, totp_secret_key, totp_code) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            $stmt = $conn->prepare($insert_query);
-            if ($stmt) {
-                if ($stmt->execute([$username, $hashed_password, $email, $mfa_enabled, $role, $totp_secret_key, $totp_code])) {
-                    // Registration successful
-                    $_SESSION['user_count']++;
-                    // Redirect to 2FA setup page
-                    header("Location: setup_2fa.php?username=$username");
-                    exit();
-                } else {
-                    // Registration failed
-                    $error = "Error executing the prepared statement: " . $stmt->error;
-                }
+            if ($result->num_rows > 0) {
+                $error = "Username or email already exists";
             } else {
-                // Failed to prepare the statement
-                $error = "Error preparing the statement: " . $conn->error;
+                // Generate a random verification code
+                $verification_code = generateVerificationCode();
+
+                // Hash the password
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+                // Insert user into the database
+                $insert_query = "INSERT INTO users (username, password, user_email, email_verification_code, email_verified) VALUES (?, ?, ?, ?, 0)";
+                $stmt = $conn->prepare($insert_query);
+                if (!$stmt) {
+                    // Failed to prepare the statement
+                    $error = "Error preparing the statement: " . $conn->error;
+                } else {
+                    // Continue with the execution of the prepared statement
+                    $stmt->bind_param("ssss", $username, $hashed_password, $email, $verification_code);
+                    if ($stmt->execute()) {
+                        // Registration successful
+                        // Send verification email
+                        sendVerificationEmail($email, $verification_code);
+                        $_SESSION['user_count']++;
+                        // Redirect to login page
+                        header("Location: login.php");
+                        exit();
+                    } else {
+                        // Registration failed
+                        $error = "Error executing the prepared statement: " . $stmt->error;
+                    }
+                }
             }
         }
+    }
+}
+
+// Function to generate a random verification code
+function generateVerificationCode($length = 6) {
+    return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, $length);
+}
+
+// Function to send verification email
+function sendVerificationEmail($email, $verification_code) {
+    $subject = "Verify Your Email";
+    $message = "Thank you for registering. Your verification code is: $verification_code";
+
+    // Send email
+    if (mail($email, $subject, $message)) {
+        // Email sent successfully
+        return true;
+    } else {
+        // Email sending failed
+        return false;
     }
 }
 ?>
@@ -86,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p style="color: red;"><?php echo $error; ?></p>
             <?php } ?>
 
-            <form action="register.php" name="Formfill" method="post">
+            <form action="register.php" method="post">
                 <h1>Register</h1>
                 <div class="input-box">
                     <i class='bx bxs-user'></i>
@@ -105,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="email" name="email" id="email" placeholder="Email" autocomplete="email">
                 </div>
                 <div class="button">
-                    <input type="submit" class="btn" name="Register">
+                    <input type="submit" class="btn" value="Register">
                 </div>
                 <div class="group">
                     <span><a href="#">Forget password</a></span>
