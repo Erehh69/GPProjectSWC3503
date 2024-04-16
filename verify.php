@@ -1,53 +1,57 @@
 <?php
-// Start Server Session
 session_start();
 
-// Display All Errors (For Easier Development)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// Check if the verification code is set in the session
-if (!isset($_SESSION['new_verification_code'])) {
-    // If not set, return an error response
-    $response = new stdClass();
-    $response->error = "Verification code not found in session";
-    echo json_encode($response);
-    exit;
+// Check if user is logged in
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['new_verification_code'])) {
+    header("Location: login.php");
+    exit();
 }
 
-// Include the necessary files
-require_once 'config.php';
+// Check if the form is submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $verification_code = $_POST['verification_code'];
+    $stored_verification_code = $_SESSION['new_verification_code'];
 
-// Retrieve user data from the session
-$user_id = $_SESSION['user_id'];
-
-// Retrieve user role from the database
-$query = "SELECT role FROM users WHERE id = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows == 1) {
-    $user = $result->fetch_assoc();
-    $user_role = $user['role'];
-
-    // Clear the stored verification code from session
-    unset($_SESSION['new_verification_code']);
-
-    // Redirect based on user role
-    if ($user_role == 'admin') {
-        header("Location: admin.php");
+    // Verify the entered verification code
+    if ($verification_code === $stored_verification_code) {
+        // Redirect based on user role (assuming role is stored in session)
+        if ($_SESSION['user_role'] == 'admin') {
+            header("Location: admin.php");
+        } else {
+            header("Location: dashboard.php");
+        }
+        exit();
     } else {
-        header("Location: dashboard.php");
+        $error = "Invalid verification code";
     }
-    exit;
-} else {
-    // If user not found or error in retrieving role, return an error response
-    $response = new stdClass();
-    $response->error = "User not found or error retrieving role";
-    echo json_encode($response);
-    exit;
 }
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify - Ledger Website</title>
+    <link rel="stylesheet" href="style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+
+    <?php if (!empty($error)) { ?>
+        <p style="color: red;"><?php echo $error; ?></p>
+    <?php } ?>
+
+    <div class="wrapper">
+    <form id="verify-form" action="verify.php" method="post">
+        <h1>Enter Verification Code</h1>
+        <div class="input-box">
+            <input type="text" id="verification_code" placeholder="Verification Code" name="verification_code" required>
+            <i class='bx bxs-key'></i>
+        </div>
+        <button type="submit" class="btn">Verify</button>
+    </form>
+    </div>
+
+</body>
+</html>

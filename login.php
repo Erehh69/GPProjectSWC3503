@@ -33,21 +33,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $update_stmt->bind_param("ss", $new_verification_code, $username);
                 $update_stmt->execute();
 
-                // Check for errors during the update process
-                if ($update_stmt->error) {
-                    $error = "Error updating verification code: " . $update_stmt->error;
-                } elseif ($update_stmt->affected_rows > 0) {
-                    // Set session variables for the user ID and the new verification code
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['new_verification_code'] = $new_verification_code;
+                // Send verification code to user's email
+                $to = $user['email'];
+                $subject = 'Verification Code';
+                $message = 'Your verification code is: ' . $new_verification_code;
+                $headers = 'From: your_email@example.com';
+                mail($to, $subject, $message, $headers);
 
-                    // Redirect to verify.php for code verification
-                    header("Location: verify.php");
-                    exit();
-                } else {
-                    // No rows affected, possibly due to username not found
-                    $error = "No rows affected. Username not found or verification code not updated.";
-                }
+                // Set session variables for the user ID and the new verification code
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['new_verification_code'] = $new_verification_code;
+
+                // Redirect to verify.php for code verification
+                header("Location: verify.php");
+                exit();
             } else {
                 // Invalid username or password
                 $error = "Invalid username or password";
@@ -76,22 +75,6 @@ function generateVerificationCode($length = 6) {
     <title>Login - Ledger Website</title>
     <link rel="stylesheet" href="style.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <script>
-        // Function to show the verification code input pop-up
-        function showVerificationPopup() {
-            var username = document.getElementById('username').value.trim();
-            var password = document.getElementById('password').value.trim();
-            
-            // Check if username and password are not empty
-            if (username === '' || password === '') {
-                alert("Please enter username and password.");
-                return;
-            }
-
-            // Submit the form
-            document.getElementById('login-form').submit();
-        }
-    </script>
 </head>
 <body>
 
@@ -110,7 +93,7 @@ function generateVerificationCode($length = 6) {
             <input type="password" id="password" placeholder="Password" name="password" required>
             <i class='bx bxs-lock-alt'></i>
         </div>
-        <button type="button" class="btn" onclick="showVerificationPopup()">Login</button>
+        <button type="submit" class="btn">Login</button>
         <div class="register-link">
             <p>Don't have an account? <a href="register.php">Register</a></p>
         </div>
