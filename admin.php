@@ -17,6 +17,39 @@ if ($admin_result->num_rows === 0) {
     exit();
 }
 
+// Function to promote a user to admin
+if (isset($_POST['promote_user'])) {
+    $user_id = $_POST['promote_user'];
+    $promote_query = "UPDATE users SET role = 'admin' WHERE id = '$user_id'";
+    $conn->query($promote_query);
+}
+
+// Function to delete a user
+if (isset($_POST['delete_user'])) {
+    $user_id = $_POST['delete_user'];
+    $delete_query = "DELETE FROM users WHERE id = '$user_id'";
+    $conn->query($delete_query);
+}
+
+// Function to add a category
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_category'])) {
+    $category_name = $_POST['category_name'];
+    $insert_query = "INSERT INTO categories (name) VALUES ('$category_name')";
+    $conn->query($insert_query);
+}
+
+// Function to update a ledger entry
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_entry'])) {
+    $entry_id = $_POST['entry_id'];
+    $description = $_POST['edit_description'];
+    $amount = $_POST['edit_amount'];
+    $type = $_POST['edit_type'];
+    $date = $_POST['edit_date'];
+
+    $update_query = "UPDATE ledger_entries SET description = '$description', amount = '$amount', type = '$type', date = '$date' WHERE id = '$entry_id'";
+    $conn->query($update_query);
+}
+
 // Fetch all users for display
 $user_query = "SELECT * FROM users";
 $user_result = $conn->query($user_query);
@@ -31,28 +64,6 @@ $categories = $category_result->fetch_all(MYSQLI_ASSOC);
 $ledger_query = "SELECT * FROM ledger_entries";
 $ledger_result = $conn->query($ledger_query);
 $ledger_entries = $ledger_result->fetch_all(MYSQLI_ASSOC);
-
-// Function to display pop-up form
-function displayPopupForm($entry_id, $description, $amount, $type, $date) {
-    echo "<div id='popupForm' class='popup'>";
-    echo "<form class='popup-content' action='update_entry.php' method='post'>";
-    echo "<h2>Edit Ledger Entry</h2>";
-    echo "<input type='hidden' name='entry_id' value='$entry_id'>";
-    echo "<label for='edit_description'>Description:</label>";
-    echo "<input type='text' id='edit_description' name='edit_description' value='$description'>";
-    echo "<label for='edit_amount'>Amount:</label>";
-    echo "<input type='text' id='edit_amount' name='edit_amount' value='$amount'>";
-    echo "<label for='edit_type'>Type:</label>";
-    echo "<select id='edit_type' name='edit_type'>";
-    echo "<option value='debit' " . ($type == 'debit' ? 'selected' : '') . ">Debit</option>";
-    echo "<option value='credit' " . ($type == 'credit' ? 'selected' : '') . ">Credit</option>";
-    echo "</select>";
-    echo "<label for='edit_date'>Date:</label>";
-    echo "<input type='date' id='edit_date' name='edit_date' value='$date'>";
-    echo "<button type='submit' name='update_entry'>Update Entry</button>";
-    echo "</form>";
-    echo "</div>";
-}
 ?>
 
 <!DOCTYPE html>
@@ -63,8 +74,6 @@ function displayPopupForm($entry_id, $description, $amount, $type, $date) {
     <title>Admin Panel - Ledger Website</title>
     <style>
         /* CSS styles */
-        /* This section contains the CSS styles for the entire page. */
-
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f4f4f4;
@@ -87,7 +96,7 @@ function displayPopupForm($entry_id, $description, $amount, $type, $date) {
         }
 
         .admin-actions {
-            width: calc(50% - 20px); /* Set width to 50% minus margin */
+            width: 48%; /* Adjust width for better layout */
             margin-bottom: 20px;
         }
 
@@ -103,7 +112,7 @@ function displayPopupForm($entry_id, $description, $amount, $type, $date) {
 
         .admin-actions th, .admin-actions td {
             border: 1px solid #ddd;
-            padding: 12px;
+            padding: 8px; /* Adjust padding */
             text-align: left;
         }
 
@@ -113,7 +122,7 @@ function displayPopupForm($entry_id, $description, $amount, $type, $date) {
         }
 
         .admin-actions button {
-            width: 48%; /* Adjust button width */
+            width: calc(50% - 4px); /* Adjust button width */
             margin-right: 2%; /* Add margin between buttons */
         }
 
@@ -139,15 +148,15 @@ function displayPopupForm($entry_id, $description, $amount, $type, $date) {
             margin: 15% auto;
             padding: 20px;
             border: 1px solid #888;
-            width: 40%;
+            width: 60%; /* Adjust width */
             border-radius: 8px;
         }
 
         .popup-content input[type=text],
         .popup-content input[type=date],
         .popup-content select {
-            width: 100%;
-            padding: 12px;
+            width: calc(100% - 24px); /* Adjust width */
+            padding: 8px; /* Adjust padding */
             margin: 6px 0;
             display: inline-block;
             border: 1px solid #ccc;
@@ -155,17 +164,19 @@ function displayPopupForm($entry_id, $description, $amount, $type, $date) {
             box-sizing: border-box;
         }
 
-        .popup-content button[type=submit] {
+        .popup-content button[type=submit],
+        .popup-content button[type=button] {
             background-color: #4CAF50;
             color: white;
-            padding: 14px 20px;
+            padding: 10px 20px; /* Adjust padding */
             border: none;
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
         }
 
-        .popup-content button[type=submit]:hover {
+        .popup-content button[type=submit]:hover,
+        .popup-content button[type=button]:hover {
             background-color: #45a049;
         }
     </style>
@@ -183,88 +194,117 @@ function displayPopupForm($entry_id, $description, $amount, $type, $date) {
     <!-- Main Section -->
     <section>
         <!-- User Management -->
-            <div class="admin-actions">
-                <form action="admin.php" method="post">
-                    <h2>User Management</h2>
-                    <table>
-                        <tr>
-                            <th>User</th>
-                            <th>Action</th>
-                        </tr>
-                        <?php foreach ($users as $user) { ?>
-                            <tr>
-                                <td>
-                                    <?php echo $user['username']; ?> (<?php echo $user['role']; ?>)
-                                </td>
-                                <td>
-                                    <input type="hidden" name="promote_user" value="<?php echo $user['id']; ?>">
-                                    <input type="hidden" name="delete_user" value="<?php echo $user['id']; ?>">
-                                    <button type="submit" name="promote_user">Promote to Admin</button>
-                                    <button type="submit" name="delete_user">Delete User</button>
-                                </td>
-                            </tr>
-                        <?php } ?>
-                    </table>
-                </form>
-            </div>
-
-            <!-- Edit Ledger Entry -->
-            <div class="admin-actions">
-                <h2>Edit Ledger Entry</h2>
+        <div class="admin-actions">
+            <form action="admin.php" method="post">
+                <h2>User Management</h2>
                 <table>
                     <tr>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Type</th>
-                        <th>Date</th>
+                        <th>User</th>
                         <th>Action</th>
                     </tr>
-                    <?php foreach ($ledger_entries as $entry) { ?>
+                    <?php foreach ($users as $user) { ?>
                         <tr>
-                            <td><?php echo $entry['description']; ?></td>
-                            <td><?php echo $entry['amount']; ?> MYR</td>
-                            <td><?php echo $entry['type']; ?></td>
-                            <td><?php echo $entry['date']; ?></td>
                             <td>
-                                <?php
-                                    // Display pop-up form for editing
-                                    displayPopupForm($entry['id'], $entry['description'], $entry['amount'], $entry['type'], $entry['date']);
-                                ?>
-                                <button onclick="document.getElementById('popupForm').style.display='block'">Edit Entry</button>
+                                <?php echo $user['username']; ?> (<?php echo $user['role']; ?>)
+                            </td>
+                            <td>
+                                <input type="hidden" name="promote_user" value="<?php echo $user['id']; ?>">
+                                <input type="hidden" name="delete_user" value="<?php echo $user['id']; ?>">
+                                <button type="submit" name="promote_user">Promote to Admin</button>
+                                <button type="submit" name="delete_user">Delete User</button>
                             </td>
                         </tr>
                     <?php } ?>
                 </table>
-            </div>
+            </form>
+        </div>
 
-            <!-- Add Category -->
-            <div class="admin-actions">
-                <form action="admin.php" method="post">
-                    <h2>Add Category</h2>
-                    <label for="category_name">Category Name:</label>
-                    <input type="text" name="category_name" required>
-                    <br>
-                    <button type="submit" name="add_category">Add Category</button>
+        <!-- Edit Ledger Entry -->
+        <div class="admin-actions">
+            <h2>Edit Ledger Entry</h2>
+            <table>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+                <?php foreach ($ledger_entries as $entry) { ?>
+                    <tr>
+                        <td><?php echo $entry['description']; ?></td>
+                        <td><?php echo $entry['amount']; ?> MYR</td>
+                        <td><?php echo $entry['type']; ?></td>
+                        <td><?php echo $entry['date']; ?></td>
+                        <td>
+                            <button type="button" onclick="showPopup(<?php echo $entry['id']; ?>)">Edit Entry</button>
+                        </td>
+                    </tr>
+                <?php } ?>
+            </table>
+        </div>
+
+        <!-- Add Category -->
+        <div class="admin-actions">
+            <form action="admin.php" method="post">
+                <h2>Add Category</h2>
+                <label for="category_name">Category Name:</label>
+                <input type="text" name="category_name" required>
+                <br>
+                <button type="submit" name="add_category">Add Category</button>
+            </form>
+        </div>
+
+        <!-- Categories -->
+        <div class="admin-actions">
+            <h2>Categories</h2>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                </tr>
+                <?php foreach ($categories as $category) { ?>
+                    <tr>
+                        <td><?php echo $category['id']; ?></td>
+                        <td><?php echo $category['name']; ?></td>
+                    </tr>
+                <?php } ?>
+            </table>
+        </div>
+
+        <!-- Popup Form for Editing Ledger Entry -->
+        <div id="popupForm" class="popup">
+            <div class="popup-content">
+                <form action="" method="post">
+                    <h2>Edit Ledger Entry</h2>
+                    <input type="hidden" id="edit_entry_id" name="entry_id" value="">
+                    <label for="edit_description">Description:</label>
+                    <input type="text" id="edit_description" name="edit_description" required>
+                    <label for="edit_amount">Amount:</label>
+                    <input type="text" id="edit_amount" name="edit_amount" required>
+                    <label for="edit_type">Type:</label>
+                    <select id="edit_type" name="edit_type" required>
+                        <option value="debit">Debit</option>
+                        <option value="credit">Credit</option>
+                    </select>
+                    <label for="edit_date">Date:</label>
+                    <input type="date" id="edit_date" name="edit_date" required>
+                    <button type="submit" name="update_entry">Update Entry</button>
+                    <button type="button" onclick="hidePopup()">Close</button>
                 </form>
             </div>
+        </div>
 
-            <!-- Categories -->
-            <div class="admin-actions">
-                <h2>Categories</h2>
-                <table>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                    </tr>
-                    <?php foreach ($categories as $category) { ?>
-                        <tr>
-                            <td><?php echo $category['id']; ?></td>
-                            <td><?php echo $category['name']; ?></td>
-                        </tr>
-                    <?php } ?>
-                </table>
-            </div>
+        <!-- JavaScript to Show/Hide Popup -->
+        <script>
+            function showPopup(entry_id) {
+                document.getElementById('edit_entry_id').value = entry_id;
+                document.getElementById('popupForm').style.display = 'block';
+            }
+            function hidePopup() {
+                document.getElementById('popupForm').style.display = 'none';
+            }
+        </script>
     </section>
 </body>
 </html>
-

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once 'config.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['new_verification_code'])) {
@@ -14,8 +15,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Verify the entered verification code
     if ($verification_code === $stored_verification_code) {
-        // Redirect based on user role (assuming role is stored in session)
-        if ($_SESSION['user_role'] == 'admin') {
+        // Fetch role from the database based on user ID
+        $user_id = $_SESSION['user_id'];
+        $role_query = "SELECT role FROM users WHERE id = ?";
+        $stmt = $conn->prepare($role_query);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows == 1) {
+            $row = $result->fetch_assoc();
+            $_SESSION['role'] = $row['role'];
+        }
+
+        // Redirect based on user role
+        if ($_SESSION['role'] == 'admin') {
             header("Location: admin.php");
         } else {
             header("Location: dashboard.php");
