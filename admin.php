@@ -2,9 +2,11 @@
 session_start();
 require_once 'config.php';
 
+// Check if the user is not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
+    // Redirect to unauthorized.php
+    header("Location: unauthorized.php");
+    exit(); // Stop further execution
 }
 
 // Check if the user is an admin
