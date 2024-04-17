@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Mar 05, 2024 at 01:26 PM
--- Server version: 8.0.31
+-- Generation Time: Apr 17, 2024 at 08:51 AM
+-- Server version: 8.0.36
 -- PHP Version: 7.4.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -37,7 +37,14 @@ CREATE TABLE `categories` (
 --
 
 INSERT INTO `categories` (`id`, `name`) VALUES
-(1, 'lebron');
+(2, 'asset'),
+(3, 'asset'),
+(4, 'expenses'),
+(5, 'equity'),
+(6, 'sales'),
+(7, 'sales'),
+(8, 'liability'),
+(9, 'liability');
 
 -- --------------------------------------------------------
 
@@ -59,8 +66,9 @@ CREATE TABLE `ledger_entries` (
 --
 
 INSERT INTO `ledger_entries` (`id`, `category_id`, `description`, `amount`, `date`, `type`) VALUES
-(3, 1, 'ayam goreng', 100.00, '2024-03-05', 'debit'),
-(4, 1, 'payment for company A', 16000.00, '2024-03-05', 'credit');
+(5, 2, 'Startup budget', 73400.00, '2024-04-16', 'debit'),
+(6, 4, 'Development', 15000.00, '2024-03-25', 'credit'),
+(7, 4, 'Support Service', 3750.00, '2024-03-26', 'credit');
 
 -- --------------------------------------------------------
 
@@ -73,18 +81,22 @@ CREATE TABLE `users` (
   `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `mfa_enabled` tinyint(1) NOT NULL DEFAULT '0',
-  `role` enum('user','admin') COLLATE utf8mb4_general_ci DEFAULT 'user'
+  `role` enum('user','admin') COLLATE utf8mb4_general_ci DEFAULT 'user',
+  `totp_secret_key` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `totp_code` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email_verification_code` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `email_verified` tinyint(1) DEFAULT '0',
+  `user_email` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`, `mfa_enabled`, `role`) VALUES
-(2, 'test1', '9f61d1c57f8c1cac62514d3b1c8fa9809286bd61c4b39427b17786feceee276f', 0, 'user'),
-(3, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 0, 'admin'),
-(4, 'amir', 'bd0150d24788942a663fc6d2797d6fa0ea4b8f23837266a4830db3100ba91809', 0, 'admin'),
-(5, 'acap', '1f885abf43a2bc3e10f5a6ca9519e5e3e04881f791e48908e5145865406fd278', 0, 'user');
+INSERT INTO `users` (`id`, `username`, `password`, `mfa_enabled`, `role`, `totp_secret_key`, `totp_code`, `email_verification_code`, `email_verified`, `user_email`) VALUES
+(8, 'admin', '$2y$10$NQ09KbnBkiW/.cNQbrFuFuOD/K3hwsXvH1.rZ/wtwTwKueq08OF6y', 0, 'admin', NULL, NULL, 'tua7iM', 1, 'hilalcr@yahoo.com'),
+(9, 'test3', '$2y$10$Mf4dLDZ8hfNb5qlXONF16OhaHjyQp63ECmHkVs6ac0KX7c3JNgMYm', 0, 'user', NULL, NULL, 'u3qoDN', 1, 'yolo@gmail.com'),
+(11, 'admin2', '$2y$10$mVmTDBoNse0ip1c5KMuTeO7NG8Nn7Nbp9DeOO2vMV7VFhWrK7Oyva', 0, 'admin', NULL, NULL, 'r6FPft', 1, 'admin@gmail.com');
 
 --
 -- Indexes for dumped tables
@@ -118,19 +130,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `ledger_entries`
 --
 ALTER TABLE `ledger_entries`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables
