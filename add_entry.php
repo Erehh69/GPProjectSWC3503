@@ -2,10 +2,10 @@
 session_start();
 require_once 'config.php';
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['new_verification_code'])) {
-    // Redirect to the login page if user ID or verification code is not set
-    header("Location: login.php");
+// Check if the user is logged in and verified
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['verified']) || $_SESSION['verified'] !== true) {
+    // Redirect to the verification page if the user is not logged in or verified
+    header("Location: verify.php");
     exit();
 }
 
