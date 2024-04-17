@@ -1,13 +1,19 @@
 <?php
-
 session_start();
 require_once 'config.php';
 
-// Check if the user is not logged in
-if (!isset($_SESSION['user_id'])) {
-    // Redirect to unauthorized.php
-    header("Location: unauthorized.php");
-    exit(); // Stop further execution
+// Check if the user is logged in
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['new_verification_code'])) {
+    // Redirect to the login page if user ID or verification code is not set
+    header("Location: login.php");
+    exit();
+}
+
+// Check if the user has been verified
+if (!isset($_SESSION['verified']) || $_SESSION['verified'] !== true) {
+    // Redirect to the verification page if the user has not been verified
+    header("Location: verify.php");
+    exit();
 }
 
 $user_id = $_SESSION['user_id'];
@@ -320,4 +326,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_entry'])) {
 </section>
 </body>
 </html>
-
